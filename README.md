@@ -8,22 +8,17 @@ This is a course management project where students can register for their desire
 
 ## Authors
 
-- [@NET_13_DaoTrongDuc](https://git.fa.edu.vn/NET_13_DaoTrongDuc)
-- [@NET_13_NguyenBaMinhDuc](https://git.fa.edu.vn/NET_13_NguyenBaMinhDuc)
-- [@NET_13_PhamAnhKiet](https://git.fa.edu.vn/NET_13_PhamAnhKiet)
-- [@NET_13_NguyenMinhThanh](https://git.fa.edu.vn/tnqt375)
-- [@NET_13_LeXuanPhuongNam](https://git.fa.edu.vn/NET_13_LeXuanPhuongNam)
-- [@NET13_NguyenQuangSon](https://git.fa.edu.vn/NET13_NguyenQuangSon)
-- [@NET_13_NguyenHuuQuocHung](https://git.fa.edu.vn/NET_13_NguyenHuuQuocHung)
-- [@NET_13_BUIDUCTRIEU](https://git.fa.edu.vn/NET_13_BUIDUCTRIEU)
-- [@NET_13_VoLeDucAnh](https://git.fa.edu.vn/NET_13_VoLeDucAnh)
+- [DaoTrongDuc]
+- [NguyenBaMinhDuc]
+- [PhamAnhKiet]
+- [NguyenMinhThanh]
+- [LeXuanPhuongNam]
+- [NguyenQuangSon]
+- [NguyenHuuQuocHung]
+- [BUIDUCTRIEU]
+- [VoLeDucAnh]
 
 
-
-
-## Demo
-
-https://api.pak160404.click/index.html
 
 ## Tools and Technologies
 - Frontend: Swagger UI  
