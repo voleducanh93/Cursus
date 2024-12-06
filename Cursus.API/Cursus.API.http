@@ -1,0 +1,6 @@
+@Cursus.API_HostAddress = http://0.0.0.0:5159
+
+GET {{Cursus.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

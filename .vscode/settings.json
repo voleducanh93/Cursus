@@ -1,0 +1,4 @@
+{
+    "tabby.config.telemetry": true,
+    "tabby.endpoint": "http://192.168.137.130:8080"
+}

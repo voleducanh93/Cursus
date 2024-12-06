@@ -1,0 +1,350 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Notification System</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-color: #f0f2f5;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 20px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            text-align: center;
+            padding: 20px 0;
+            background-color: #4a4a4a;
+            color: white;
+        }
+
+        #login-section {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-grow: 1;
+        }
+
+        #login-form {
+            background-color: white;
+            width: 350px;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        #admin-panel, #user-panel {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            width: 100%;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        input, button, select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        button {
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+            button:hover {
+                background-color: #357abd;
+            }
+
+        #notifications {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+        }
+
+        .notification {
+            margin-bottom: 10px;
+            padding: 12px;
+            background-color: #f4f4f4;
+            border-radius: 4px;
+            position: relative;
+        }
+
+        .new-notification {
+            background-color: #e6f2ff;
+            font-weight: bold;
+        }
+
+        #userId {
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Notification System Real Time</h1>
+    </div>
+
+    <div class="container">
+        <div id="login-section">
+            <div id="login-form">
+                <h2>Login</h2>
+                <input type="text" id="username" placeholder="Username">
+                <input type="password" id="password" placeholder="Password">
+                <button onclick="login()">Login</button>
+            </div>
+        </div>
+
+        <div id="admin-panel" style="display: none;">
+            <h2>Admin Notification Panel</h2>
+            <select id="userId"></select>
+            <input type="text" id="message" placeholder="Notification Message">
+            <button id="sendNotification">Send Notification</button>
+            <button onclick="logout()">Logout</button>
+        </div>
+
+        <div id="user-panel" style="display: none;">
+            <h2>User Notifications</h2>
+            <div id="notifications"></div>
+            <button onclick="logout()">Logout</button>
+        </div>
+    </div>
+
+    <script>
+        let connection, userRole, adminId, userId, token;
+
+        connection = new signalR.HubConnectionBuilder()
+            .withUrl("/notificationHub")
+            .build();
+
+        async function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            if (!username || !password) {
+                showMessage('Please enter both username and password', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/Auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+                if (data.isSuccess) {
+                    localStorage.setItem('token', data.result.token);
+
+                    localStorage.setItem('userId', data.result.user.id);
+
+                    localStorage.setItem('userRole', data.result.role[0]);
+
+                    token = data.result.token;
+                    userId = data.result.user.id;
+                    userRole = data.result.role[0];
+
+                    document.getElementById('login-section').style.display = 'none';
+
+                    if (userRole === 'Admin') {
+                        adminId = data.result.user.id;
+                        document.getElementById('admin-panel').style.display = 'block';
+                        await populateUserDropdown();
+                    }
+                    else if (userRole === 'User') {
+                        document.getElementById('user-panel').style.display = 'block';
+                        await fetchExistingNotifications();
+                    }
+
+                    if (connection.state === signalR.HubConnectionState.Disconnected) {
+                        await connection.start().catch(function (err) {
+                            return console.error(err.toString());
+                        });
+
+                        connection.on("ReceiveNotification", (userId, message) => {
+                            const loggedUserId = localStorage.getItem('userId');
+
+                            if (userId == loggedUserId)
+                                addNotification(message, true);
+                        });
+                    }
+                } else {
+                    alert('Login failed');
+                }
+            } catch (error) {
+                console.error("Login error:", error);
+            }
+        }
+
+        async function populateUserDropdown() {
+            try {
+                const response = await fetch('/api/Admin/manage-users', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.isSuccess) {
+                    const userSelect = document.getElementById('userId');
+                    userSelect.innerHTML = '';
+
+                    data.result.forEach(user => {
+                        const option = document.createElement('option');
+                        option.value = user.id;
+                        option.textContent = user.email;
+                        userSelect.appendChild(option);
+                    });
+                } else {
+                    alert('Failed to load users: ' + (data.errorMessages?.[0] || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error fetching users', error);
+                alert('Failed to load users');
+            }
+        }
+
+        async function fetchExistingNotifications() {
+            try {
+                const response = await fetch(`/api/Notification/fetch?userId=${userId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+
+                if (data.result && data.result.notifications) {
+                    data.result.notifications.forEach(notification =>
+                        addNotification(notification.message, notification.isNew)
+                    );
+                }
+            } catch (error) {
+                console.error("Error fetching notifications:", error);
+            }
+        }
+
+        function addNotification(message, isNew = false) {
+            const notificationsDiv = document.getElementById('notifications');
+            const notificationElement = document.createElement('div');
+            notificationElement.classList.add('notification');
+            if (isNew) notificationElement.classList.add('new-notification');
+            notificationElement.textContent = message;
+            notificationsDiv.prepend(notificationElement);
+        }
+
+        document.getElementById("sendNotification").addEventListener("click", async () => {
+            const targetUserId = document.getElementById("userId").value;
+            const message = document.getElementById("message").value;
+
+            if (targetUserId && message) {
+                try {
+                    await connection.invoke("SendNotificationToUser", targetUserId, message);
+
+                    const url = `/api/Notification/send?userId=${encodeURIComponent(targetUserId)}&message=${encodeURIComponent(message)}`;
+
+                    const response = await fetch(url, {
+                        method: "POST",
+                        headers: {
+                            "Authorization": `Bearer ${token}`
+                        }
+                    });
+
+                    if (response.ok) {
+                        alert(`Notification sent successfully. Message: ${message}`);
+                    } else {
+                        const err = await response.json();
+                        throw new Error(err.message || "Error sending notification.");
+                    }
+                } catch (error) {
+                    console.error("Error:", error);
+                    alert("Error sending notification.");
+                }
+            } else {
+                alert("User ID and message are required.");
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const storedToken = localStorage.getItem('token');
+            const storedUserId = localStorage.getItem('userId');
+            const storedUserRole = localStorage.getItem('userRole');
+
+            if (storedToken && storedUserId && storedUserRole) {
+                token = storedToken;
+                userId = storedUserId;
+                userRole = storedUserRole;
+
+                document.getElementById('login-section').style.display = 'none';
+
+                if (userRole === 'Admin') {
+                    document.getElementById('admin-panel').style.display = 'block';
+                    populateUserDropdown();
+                } else if (userRole === 'User') {
+                    document.getElementById('user-panel').style.display = 'block';
+                    fetchExistingNotifications();
+                }
+            }
+        });
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('userId');
+            localStorage.removeItem('userRole');
+            localStorage.removeItem('user');
+
+            token = null;
+            userId = null;
+            userRole = null;
+
+            document.getElementById('login-section').style.display = 'flex';
+            document.getElementById('admin-panel').style.display = 'none';
+            document.getElementById('user-panel').style.display = 'none';
+            document.getElementById('notifications').innerHTML = '';
+
+            stopConnection();
+
+        }
+
+        function stopConnection() {
+            if (connection.state !== signalR.HubConnectionState.Disconnected) {
+                connection.stop().catch(err => console.error('Error stopping connection:', err));
+            }
+        }
+    </script>
+</body>
+</html>

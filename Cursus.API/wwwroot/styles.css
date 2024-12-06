@@ -1,0 +1,126 @@
+﻿/* General Styles */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f9f9f9;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: start;
+    min-height: 100vh;
+}
+
+/* Page Header */
+h1 {
+    color: #333;
+    margin: 20px 0;
+}
+
+/* Form Input Styles */
+input[type="text"] {
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    width: 300px;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Button Styles */
+button {
+    padding: 10px 15px;
+    font-size: 16px;
+    color: #fff;
+    background-color: #007bff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-bottom: 10px; /* Add spacing between buttons */
+}
+
+    button:hover {
+        background-color: #0056b3;
+    }
+
+    button:disabled {
+        background-color: #ccc;
+        cursor: not-allowed;
+    }
+
+/* Join/Leave Group Section */
+#groupControls {
+    display: flex;
+    flex-direction: row; /* Stack buttons vertically */
+    align-items: flex-start;
+    margin-top: 20px;
+}
+
+/* Message Section */
+#messages {
+    margin-top: 20px;
+    width: 80%;
+    max-width: 600px;
+    border: 1px solid #ddd;
+    background-color: #fff;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    overflow-y: auto;
+    max-height: 300px;
+}
+
+    #messages h3 {
+        margin-top: 0;
+        margin-bottom: 10px;
+        color: #555;
+    }
+
+    #messages div {
+        margin-bottom: 5px;
+        padding: 8px;
+        border-radius: 5px;
+        background-color: #f1f1f1;
+        color: #333;
+    }
+
+/* Message Input Section */
+#sendMessageSection {
+    margin-top: 20px;
+    display: flex;
+    align-items: center; /* Align items vertically in the middle */
+    justify-content: flex-start; /* Align items to the left */
+    gap: 10px; /* Add space between the input and button */
+}
+
+
+    #sendMessageSection input[type="text"] {
+        flex-grow: 1;
+        margin-right: 10px;
+    }
+
+    #sendMessageSection button {
+        flex-shrink: 0;
+    }
+
+/* Responsive Design */
+@media (max-width: 600px) {
+    input[type="text"] {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
+    button {
+        width: 100%;
+    }
+
+    #sendMessageSection {
+        flex-direction: column;
+    }
+
+        #sendMessageSection button {
+            margin-top: 10px;
+        }
+}
